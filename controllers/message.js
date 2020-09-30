@@ -36,7 +36,21 @@ const save = () => {
  * @param {message} message
  */
 const pushMessage = (message) => {
-  messages.push(makeMessage(message));
+  const newMessage = makeMessage(message);
+  messages.push(newMessage);
+  conn
+    .then((client) => {
+      client
+        .db("messages")
+        .collection("message")
+        .insertOne(newMessage)
+        .then((data) => {
+          console.log(data);
+        });
+    })
+    .catch((err) => {
+      console.log(err);
+    });
   save();
   return messages;
 };
@@ -51,18 +65,20 @@ exports.wsCreateMessage = pushMessage;
  * @param {next} next
  */
 exports.getAllMessages = (req, res, next) => {
-  conn.then((client) => {
-    client
-      .db("messages")
-      .collection("message")
-      .find({})
-      .toArray((err, data) => {
-        res.status(200).send(data);
-        console.log(data);
-      });
-  }).catch((err)=>{
-    res.status(400).send(err);
-  });
+  conn
+    .then((client) => {
+      client
+        .db("messages")
+        .collection("message")
+        .find({})
+        .toArray((err, data) => {
+          res.status(200).send(data);
+          console.log(data);
+        });
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
   //res.status(200).send(messages);
 };
 
@@ -79,19 +95,21 @@ exports.createMessage = (req, res, next) => {
   }
   pushMessage(req.body);
 
-  conn.then((client) => {
-    const newMessage = makeMessage(req.body);
-    client
-      .db("messages")
-      .collection("message")
-      .insertOne(newMessage)
-      .then((data) => {
-        res.status(200).send(newMessage);
-        console.log(data);
-      });
-  }).catch((err)=>{
-    res.status(400).send(err);
-  });
+  conn
+    .then((client) => {
+      const newMessage = makeMessage(req.body);
+      client
+        .db("messages")
+        .collection("message")
+        .insertOne(newMessage)
+        .then((data) => {
+          res.status(200).send(newMessage);
+          console.log(data);
+        });
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
 
   //res.status(200).send(messages);
   //Update
@@ -106,18 +124,20 @@ exports.createMessage = (req, res, next) => {
  */
 exports.getMessageById = (req, res, next) => {
   const id = parseInt(req.params.ts);
-  conn.then((client) => {
-    client
-      .db("messages")
-      .collection("message")
-      .findOne({ts:id})
-      .then((data) => {
-        res.status(200).send(data);
-        console.log(data);
-      });
-  }).catch((err)=>{
-    res.status(400).send(err);
-  });
+  conn
+    .then((client) => {
+      client
+        .db("messages")
+        .collection("message")
+        .findOne({ ts: id })
+        .then((data) => {
+          res.status(200).send(data);
+          console.log(data);
+        });
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
 };
 
 /**
@@ -128,18 +148,20 @@ exports.getMessageById = (req, res, next) => {
  */
 exports.deleteMessage = (req, res, next) => {
   const id = parseInt(req.params.ts);
-  conn.then((client) => {
-    client
-      .db("messages")
-      .collection("message")
-      .deleteOne({ts:id})
-      .then((data) => {
-        res.status(200).send(data);
-        console.log(data);
-      });
-  }).catch((err)=>{
-    res.status(400).send(err);
-  });
+  conn
+    .then((client) => {
+      client
+        .db("messages")
+        .collection("message")
+        .deleteOne({ ts: id })
+        .then((data) => {
+          res.status(200).send(data);
+          console.log(data);
+        });
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
 
   //res.status(200).send(messages);
   //Update
@@ -159,20 +181,25 @@ exports.updateMessage = (req, res, next) => {
   }
   const id = parseInt(req.body.ts);
   console.log(id);
-  conn.then((client) => {
-    const newMessage = makeMessage(req.body);
-    newMessage.ts = id;
-    client
-      .db("messages")
-      .collection("message")
-      .updateOne({ts:id},{$set: {message:newMessage.message,author:newMessage.author}})
-      .then((data) => {
-        res.status(200).send(newMessage);
-        console.log(data);
-      });
-  }).catch((err)=>{
-    res.status(400).send(err);
-  });
+  conn
+    .then((client) => {
+      const newMessage = makeMessage(req.body);
+      newMessage.ts = id;
+      client
+        .db("messages")
+        .collection("message")
+        .updateOne(
+          { ts: id },
+          { $set: { message: newMessage.message, author: newMessage.author } }
+        )
+        .then((data) => {
+          res.status(200).send(newMessage);
+          console.log(data);
+        });
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
 
   //res.status(200).send(messages);
   //Update
